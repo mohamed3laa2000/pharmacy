@@ -7,7 +7,7 @@
 		fetchStaff,
 		fetchBatchesForMedicine,
 		fetchAllBatches
-	} from '$lib/api/fetchData';
+	} from '$lib/api/fetchdata.js';
 
 	let medicines = [];
 	let requests = [];
