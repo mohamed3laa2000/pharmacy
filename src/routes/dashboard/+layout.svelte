@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { auth } from '$lib/firebase';
-	import { fetchMedicines, fetchStaff, fetchBatchesForMedicine } from '$lib/api/fetchData';
+	import { fetchMedicines, fetchStaff, fetchBatchesForMedicine } from '$lib/api/fetchdata.js';
 	import { medicines, requests, staff, userLocation } from '$lib/store/dataStore';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
