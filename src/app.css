@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+	--white: #ffffff;
+	--green_dark: #0f3144;
+	--green_light: #269798;
+	--green_lighter: #2bb574;
+	--grey: #7a7a7a;
+}
+
+@font-face {
+	font-family: 'HRSD';
+	src: url('/fonts/HRSD-Medium.ttf') format('truetype');
+}
+
+body {
+	font-family: 'HRSD', sans-serif;
+	font-size: 15px;
+	/* font-weight: 600; */
+}
