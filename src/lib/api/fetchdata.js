@@ -14,6 +14,12 @@ export async function fetchMedicines() {
 	return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+export async function fetchCatalog() {
+	const medicinesCatalogRef = collection(db, 'medicinesCatalog');
+	const snapshot = await getDocs(medicinesCatalogRef);
+	return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+}
+
 // Search medicines by name (case-insensitive)
 export async function searchMedicines(searchTerm) {
 	const location = get(userLocation);

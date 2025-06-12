@@ -13,10 +13,11 @@
 		doc,
 		deleteDoc
 	} from 'firebase/firestore';
-	import { fetchMedicines, fetchPharmacies } from '$lib/api/fetchdata';
+	import { fetchMedicines, fetchPharmacies, fetchCatalog } from '$lib/api/fetchdata';
 	import { userLocation } from '$lib/store/dataStore';
 	import { get } from 'svelte/store';
 
+	let catalog = [];
 	let medicines = [];
 	let pharmacies = [];
 	let exchangeRequests = [];
@@ -29,6 +30,7 @@
 
 	// Fetch medicines and requests on mount
 	onMount(async () => {
+		catalog = await fetchCatalog();
 		medicines = await fetchMedicines();
 		pharmacies = await fetchPharmacies();
 		await loadRequests();
@@ -288,7 +290,7 @@
 				<th class=" text-right px-4 py-2">الدواء</th>
 				<th class=" text-right px-4 py-2">الكمية</th>
 				<th class=" text-right px-4 py-2">من صيدلية</th>
-				<th class=" text-right px-4 py-2">الحالة</th>
+				<!-- <th class=" text-right px-4 py-2">الحالة</th> -->
 				<th class=" text-right px-4 py-2">ملاحظات</th>
 				<th class=" text-right px-4 py-2">إجراءات</th>
 			</tr>
@@ -296,14 +298,19 @@
 		<tbody>
 			{#each exchangeRequests as req}
 				<tr>
-					<td class="px-4 py-2">{medicines.find((m) => m.id === req.medicineId)?.name ?? '-'}</td>
+					<td class="px-4 py-2">{catalog.find((m) => m.id === req.catalogId)?.name ?? '-'}</td>
 					<td class="px-4 py-2">{req.quantity}</td>
 					<td class="px-4 py-2"
 						>{pharmacies.find((ph) => ph.id === req.fromPharmacyId)?.name ?? req.fromPharmacyId}</td
 					>
-					<td class="px-4 py-2">{req.status}</td>
-					<td class="px-4 py-2">{req.note}</td>
+					<!-- <td class="px-4 py-2">{req.status}</td> -->
 					<td class="px-4 py-2">
+						{#if req.note}
+							<div>{req.note}</div>
+						{:else}
+							<div class="text-xs text-gray-500 italic">لا يوجد</div>
+						{/if}
+					</td><td class="px-4 py-2">
 						{#if req.status === 'pending' && req.toPharmacyId === get(userLocation)?.pharmacyId}
 							<button
 								on:click={() => handleApprove(req)}
@@ -352,7 +359,7 @@
 				<th class=" text-right px-4 py-2">الدواء</th>
 				<th class=" text-right px-4 py-2">الكمية</th>
 				<th class=" text-right px-4 py-2">إلى صيدلية</th>
-				<th class=" text-right px-4 py-2">الحالة</th>
+				<!-- <th class=" text-right px-4 py-2">الحالة</th> -->
 				<th class=" text-right px-4 py-2">ملاحظات</th>
 				<th class=" text-right px-4 py-2">إجراءات</th>
 			</tr>
@@ -365,8 +372,14 @@
 					<td class="px-4 py-2"
 						>{pharmacies.find((ph) => ph.id === req.toPharmacyId)?.location ?? req.toPharmacyId}</td
 					>
-					<td class="px-4 py-2">{req.status}</td>
-					<td class="px-4 py-2">{req.note}</td>
+					<!-- <td class="px-4 py-2">{req.status}</td> -->
+					<td class="px-4 py-2"
+						>{#if req.note}
+							<div>{req.note}</div>
+						{:else}
+							<div class="text-xs text-gray-500 italic">لا يوجد</div>
+						{/if}</td
+					>
 					<td class="px-4 py-2">
 						{#if req.status === 'pending'}
 							<button
@@ -375,6 +388,8 @@
 							>
 								إلغاء
 							</button>
+						{:else}
+							<span class="text-gray-400">تم {req.status === 'approved' ? 'القبول' : 'الرفض'}</span>
 						{/if}
 					</td>
 				</tr>

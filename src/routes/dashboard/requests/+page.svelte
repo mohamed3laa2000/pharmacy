@@ -241,7 +241,7 @@
 
 <!-- Requests Table -->
 <div class="relative overflow-x-auto">
-	<table class="w-full text-lg text-center rtl:text-right text-gray-500 dark:text-gray-400">
+	<table class="w-full text-lg text-center rtl:text-right text-gray-500 dark0:text-gray-400">
 		<thead>
 			<tr>
 				<th class="px-6 py-3">العضو</th>
@@ -253,7 +253,7 @@
 		<tbody>
 			{#each requests as req}
 				<tr
-					class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-100"
+					class="bg-white border-b dark0:bg-gray-800 dark0:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-100"
 					on:click={() => openRequestModal(req)}
 				>
 					<td class="px-6 py-4">
@@ -314,7 +314,7 @@
 <!-- Add Request Modal -->
 {#if showAddRequestModal}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-		<div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[500px]">
+		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[500px]">
 			<h2 class="text-xl font-bold mb-4">إضافة طلب جديد</h2>
 			<form on:submit|preventDefault={addRequest}>
 				<textarea
@@ -422,7 +422,7 @@
 <!-- Request Details Modal -->
 {#if showRequestModal && selectedRequest}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-		<div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[500px]">
+		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[500px]">
 			<h2 class="text-xl font-bold mb-4">تفاصيل الطلب</h2>
 			<p class="mb-2 break-words whitespace-pre-line">
 				<b>الوصف:</b>

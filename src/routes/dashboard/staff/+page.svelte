@@ -122,8 +122,10 @@
 
 <!-- Staff Table -->
 <div class="relative overflow-x-auto">
-	<table class="w-full text-lg text-center rtl:text-right text-gray-500 dark:text-gray-400">
-		<thead class="text-3xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+	<table class="w-full text-lg text-center rtl:text-right text-gray-500 dark0:text-gray-400">
+		<thead
+			class="text-3xs text-gray-700 uppercase bg-gray-50 dark0:bg-gray-700 dark0:text-gray-400"
+		>
 			<tr>
 				<th class="px-6 py-3">الاسم</th>
 				<th class="px-6 py-3">الدور</th>
@@ -135,9 +137,9 @@
 			{#each staff as member}
 				<tr
 					on:click={() => openModal(member)}
-					class="hover:bg-black/10 cursor-pointer bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200"
+					class="hover:bg-black/10 cursor-pointer bg-white border-b dark0:bg-gray-800 dark0:border-gray-700 border-gray-200"
 				>
-					<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+					<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark0:text-white">
 						{member.name}
 					</td>
 					<td class="px-6 py-4">{member.role === 'doctor' ? 'دكتور' : 'ممرض'}</td>
@@ -151,169 +153,169 @@
 
 <!-- Staff Detail Modal -->
 {#if showModal && selectedStaff}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
-            <h2 class="text-2xl font-bold mb-4">{selectedStaff.name}</h2>
-            <p class="mb-2">الدور: {selectedStaff.role === 'doctor' ? 'دكتور' : 'ممرض'}</p>
-            <p class="mb-2">الهاتف: {selectedStaff.phone ?? 'غير متاح'}</p>
-            <p class="mb-2">البريد الإلكتروني: {selectedStaff.email ?? 'غير متاح'}</p>
-            <p class="mb-2">كلمة المرور: {selectedStaff.password ?? 'غير متاح'}</p>
-            <div class="flex justify-end space-x-4 mt-6">
-                <button
-                    on:click={() => openEditModal(selectedStaff)}
-                    class="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    تعديل
-                </button>
-                <button
-                    on:click={() => deleteStaff(selectedStaff.id)}
-                    class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                >
-                    حذف
-                </button>
-                <button
-                    on:click={() => (showModal = false)}
-                    class="cursor-pointer bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                >
-                    إغلاق
-                </button>
-            </div>
-        </div>
-    </div>
+	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
+			<h2 class="text-2xl font-bold mb-4">{selectedStaff.name}</h2>
+			<p class="mb-2">الدور: {selectedStaff.role === 'doctor' ? 'دكتور' : 'ممرض'}</p>
+			<p class="mb-2">الهاتف: {selectedStaff.phone ?? 'غير متاح'}</p>
+			<p class="mb-2">البريد الإلكتروني: {selectedStaff.email ?? 'غير متاح'}</p>
+			<p class="mb-2">كلمة المرور: {selectedStaff.password ?? 'غير متاح'}</p>
+			<div class="flex justify-end space-x-4 mt-6">
+				<button
+					on:click={() => openEditModal(selectedStaff)}
+					class="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+				>
+					تعديل
+				</button>
+				<button
+					on:click={() => deleteStaff(selectedStaff.id)}
+					class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+				>
+					حذف
+				</button>
+				<button
+					on:click={() => (showModal = false)}
+					class="cursor-pointer bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+				>
+					إغلاق
+				</button>
+			</div>
+		</div>
+	</div>
 {/if}
 
 <!-- Edit Staff Modal -->
 {#if showEditStaffModal}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
-            <h2 class="text-xl font-bold mb-4">تعديل بيانات العضو</h2>
-            <form on:submit|preventDefault={updateStaff}>
-                <input
-                    type="text"
-                    bind:value={editStaff.name}
-                    placeholder="اسم العضو"
-                    required
-                    class="w-full p-2 mb-2 border rounded"
-                />
-                <select
-                    bind:value={editStaff.role}
-                    required
-                    class="w-full p-2 mb-2 border rounded cursor-pointer"
-                >
-                    <option value="">اختر الدور</option>
-                    <option value="doctor">دكتور</option>
-                    <option value="nurse">ممرض</option>
-                </select>
-                <input
-                    type="text"
-                    bind:value={editStaff.phone}
-                    placeholder="رقم الهاتف"
-                    required
-                    class="w-full p-2 mb-2 border rounded"
-                />
-                <input
-                    type="email"
-                    bind:value={editStaff.email}
-                    placeholder="البريد الإلكتروني"
-                    required
-                    class="w-full p-2 mb-2 border rounded"
-                />
-                <input
-                    type="text"
-                    bind:value={editStaff.password}
-                    placeholder="كلمة المرور"
-                    required
-                    class="w-full p-2 mb-4 border rounded"
-                />
-                <div class="flex justify-end space-x-4">
-                    <button
-                        disabled={isSubmitting}
-                        type="submit"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
-                    >
-                        {#if isSubmitting}
-                            <span>جاري الحفظ...</span>
-                        {:else}
-                            <span>حفظ</span>
-                        {/if}
-                    </button>
-                    <button
-                        type="button"
-                        on:click={() => (showEditStaffModal = false)}
-                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
-                    >
-                        إغلاق
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
+			<h2 class="text-xl font-bold mb-4">تعديل بيانات العضو</h2>
+			<form on:submit|preventDefault={updateStaff}>
+				<input
+					type="text"
+					bind:value={editStaff.name}
+					placeholder="اسم العضو"
+					required
+					class="w-full p-2 mb-2 border rounded"
+				/>
+				<select
+					bind:value={editStaff.role}
+					required
+					class="w-full p-2 mb-2 border rounded cursor-pointer"
+				>
+					<option value="">اختر الدور</option>
+					<option value="doctor">دكتور</option>
+					<option value="nurse">ممرض</option>
+				</select>
+				<input
+					type="text"
+					bind:value={editStaff.phone}
+					placeholder="رقم الهاتف"
+					required
+					class="w-full p-2 mb-2 border rounded"
+				/>
+				<input
+					type="email"
+					bind:value={editStaff.email}
+					placeholder="البريد الإلكتروني"
+					required
+					class="w-full p-2 mb-2 border rounded"
+				/>
+				<input
+					type="text"
+					bind:value={editStaff.password}
+					placeholder="كلمة المرور"
+					required
+					class="w-full p-2 mb-4 border rounded"
+				/>
+				<div class="flex justify-end space-x-4">
+					<button
+						disabled={isSubmitting}
+						type="submit"
+						class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+					>
+						{#if isSubmitting}
+							<span>جاري الحفظ...</span>
+						{:else}
+							<span>حفظ</span>
+						{/if}
+					</button>
+					<button
+						type="button"
+						on:click={() => (showEditStaffModal = false)}
+						class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
+					>
+						إغلاق
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
 {/if}
 
 <!-- Add Staff Modal -->
 {#if showAddStaffModal}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
-            <h2 class="text-xl font-bold mb-4">إضافة عضو جديد</h2>
-            <form on:submit|preventDefault={addStaff}>
-                <input
-                    type="text"
-                    bind:value={newStaff.name}
-                    placeholder="اسم العضو"
-                    required
-                    class="w-full p-2 mb-2 border rounded"
-                />
-                <select
-                    bind:value={newStaff.role}
-                    required
-                    class="w-full p-2 mb-2 border rounded cursor-pointer"
-                >
-                    <option value="">اختر الدور</option>
-                    <option value="doctor">دكتور</option>
-                    <option value="nurse">ممرض</option>
-                </select>
-                <input
-                    type="text"
-                    bind:value={newStaff.phone}
-                    placeholder="رقم الهاتف"
-                    required
-                    class="w-full p-2 mb-2 border rounded"
-                />
-                <input
-                    type="email"
-                    bind:value={newStaff.email}
-                    placeholder="البريد الإلكتروني"
-                    required
-                    class="w-full p-2 mb-2 border rounded"
-                />
-                <input
-                    type="text"
-                    bind:value={newStaff.password}
-                    placeholder="كلمة المرور"
-                    required
-                    class="w-full p-2 mb-4 border rounded"
-                />
-                <div class="flex justify-end space-x-4">
-                    <button
-                        disabled={isSubmitting}
-                        type="submit"
-                        class="bg-(--green_lighter) text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
-                    >
-                        {#if isSubmitting}
-                            <span>جاري الإضافة...</span>
-                        {:else}
-                            <span>إضافة</span>
-                        {/if}
-                    </button>
-                    <button
-                        type="button"
-                        on:click={() => (showAddStaffModal = false)}
-                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
-                    >
-                        إغلاق
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
+			<h2 class="text-xl font-bold mb-4">إضافة عضو جديد</h2>
+			<form on:submit|preventDefault={addStaff}>
+				<input
+					type="text"
+					bind:value={newStaff.name}
+					placeholder="اسم العضو"
+					required
+					class="w-full p-2 mb-2 border rounded"
+				/>
+				<select
+					bind:value={newStaff.role}
+					required
+					class="w-full p-2 mb-2 border rounded cursor-pointer"
+				>
+					<option value="">اختر الدور</option>
+					<option value="doctor">دكتور</option>
+					<option value="nurse">ممرض</option>
+				</select>
+				<input
+					type="text"
+					bind:value={newStaff.phone}
+					placeholder="رقم الهاتف"
+					required
+					class="w-full p-2 mb-2 border rounded"
+				/>
+				<input
+					type="email"
+					bind:value={newStaff.email}
+					placeholder="البريد الإلكتروني"
+					required
+					class="w-full p-2 mb-2 border rounded"
+				/>
+				<input
+					type="text"
+					bind:value={newStaff.password}
+					placeholder="كلمة المرور"
+					required
+					class="w-full p-2 mb-4 border rounded"
+				/>
+				<div class="flex justify-end space-x-4">
+					<button
+						disabled={isSubmitting}
+						type="submit"
+						class="bg-(--green_lighter) text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+					>
+						{#if isSubmitting}
+							<span>جاري الإضافة...</span>
+						{:else}
+							<span>إضافة</span>
+						{/if}
+					</button>
+					<button
+						type="button"
+						on:click={() => (showAddStaffModal = false)}
+						class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
+					>
+						إغلاق
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
 {/if}

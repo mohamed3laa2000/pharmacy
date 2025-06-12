@@ -45,7 +45,7 @@
 	}
 </script>
 
-<nav class="fixed h-16 top-0 z-50 w-full bg-(--green_dark) dark:bg-gray-800 dark:border-gray-700">
+<nav class="fixed h-16 top-0 z-50 w-full bg-(--green_dark) dark0:bg-gray-800 dark0:border-gray-700">
 	<div class="px-3 py-3 lg:px-5 lg:pl-3">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center justify-start rtl:justify-end">
@@ -59,10 +59,10 @@
 
 <aside
 	id="logo-sidebar"
-	class="fixed top-0 right-0 z-40 w-64 h-screen pt-20 bg-(--green_dark) sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700"
+	class="fixed top-0 right-0 z-40 w-64 h-screen pt-20 bg-(--green_dark) sm:translate-x-0 dark0:bg-gray-800 dark0:border-gray-700"
 	aria-label="Sidebar"
 >
-	<div class="h-auto px-3 pb-4 overflow-y-auto bg-(--green_dark) dark:bg-gray-800">
+	<div class="h-auto px-3 pb-4 overflow-y-auto bg-(--green_dark) dark0:bg-gray-800">
 		<h3 class="text-white text-center pb-4 text-xl">
 			صيدلية مركز التأهيل الشامل ب<span>{$userLocation?.location}</span>
 		</h3>
@@ -72,10 +72,10 @@
 					href="/dashboard"
 					class="{$page.url.pathname === '/dashboard'
 						? 'bg-(--green_light)/30'
-						: ''} text-white flex items-center p-2 mb-3 rounded-lg dark:text-white hover:bg-(--green_light)/30 dark:hover:bg-gray-700 group"
+						: ''} text-white flex items-center p-2 mb-3 rounded-lg dark0:text-white hover:bg-(--green_light)/30 dark0:hover:bg-gray-700 group"
 				>
 					<svg
-						class="w-5 h-5 text-white transition duration-75 dark:text-gray-400 dark:group-hover:text-white"
+						class="w-5 h-5 text-white transition duration-75 dark0:text-gray-400 dark0:group-hover:text-white"
 						aria-hidden="true"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="currentColor"
@@ -96,10 +96,10 @@
 					href="/dashboard/requests"
 					class="{$page.url.pathname === '/dashboard/requests'
 						? 'bg-(--green_light)/30'
-						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark:text-white hover:bg-(--green_light)/30 dark:hover:bg-gray-700 group"
+						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark0:text-white hover:bg-(--green_light)/30 dark0:hover:bg-gray-700 group"
 				>
 					<svg
-						class="w-6 h-6 text-white dark:text-white"
+						class="w-6 h-6 text-white dark0:text-white"
 						aria-hidden="true"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="currentColor"
@@ -111,7 +111,7 @@
 					</svg>
 					<span class="flex-1 ms-3 whitespace-nowrap">الطلبيات</span>
 					<span
-						class="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300"
+						class="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark0:bg-blue-900 dark0:text-blue-300"
 					>
 						{$requests.filter((r) => r.status === 'pending').length}
 					</span>
@@ -122,10 +122,10 @@
 					href="/dashboard/inventory"
 					class="{$page.url.pathname === '/dashboard/inventory'
 						? 'bg-(--green_light)/30'
-						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark:text-white hover:bg-(--green_light)/30 dark:hover:bg-gray-700 group"
+						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark0:text-white hover:bg-(--green_light)/30 dark0:hover:bg-gray-700 group"
 				>
 					<svg
-						class="w-6 h-6 text-white dark:text-white"
+						class="w-6 h-6 text-white dark0:text-white"
 						aria-hidden="true"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="currentColor"
@@ -143,10 +143,10 @@
 					href="/dashboard/staff"
 					class="{$page.url.pathname === '/dashboard/staff'
 						? 'bg-(--green_light)/30'
-						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark:text-white hover:bg-(--green_light)/30 dark:hover:bg-gray-700 group"
+						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark0:text-white hover:bg-(--green_light)/30 dark0:hover:bg-gray-700 group"
 				>
 					<svg
-						class="shrink-0 w-5 h-5 text-white transition duration-75 dark:text-gray-400 dark:group-hover:text-white"
+						class="shrink-0 w-5 h-5 text-white transition duration-75 dark0:text-gray-400 dark0:group-hover:text-white"
 						aria-hidden="true"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="currentColor"
@@ -164,10 +164,10 @@
 					href="/dashboard/exchange"
 					class="{$page.url.pathname === '/dashboard/exchange'
 						? 'bg-(--green_light)/30'
-						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark:text-white hover:bg-(--green_light)/30 dark:hover:bg-gray-700 group"
+						: ''} flex items-center p-2 mb-3 text-white rounded-lg dark0:text-white hover:bg-(--green_light)/30 dark0:hover:bg-gray-700 group"
 				>
 					<svg
-						class="w-6 h-6 text-white dark:text-white"
+						class="w-6 h-6 text-white dark0:text-white"
 						aria-hidden="true"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
@@ -190,7 +190,7 @@
 				<button
 					on:click={logout}
 					type="button"
-					class="cursor-pointer text-white bg-(--green_light) hover:bg-(--green_light)/80 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					class="cursor-pointer text-white bg-(--green_light) hover:bg-(--green_light)/80 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark0:bg-blue-600 dark0:hover:bg-blue-700 dark0:focus:ring-blue-800"
 					>تسجيل الخروج</button
 				>
 			</div>
