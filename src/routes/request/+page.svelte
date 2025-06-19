@@ -167,7 +167,6 @@
 			<thead class="border-b border-gray-200 bg-gray-50">
 				<tr>
 					<th class="px-6 py-3">الأدوية المطلوبة</th>
-					<th class="px-6 py-3">المريض</th>
 					<th class="px-6 py-3">الحالة</th>
 				</tr>
 			</thead>
@@ -194,17 +193,6 @@
 										</li>
 									{/each}
 								</ul>
-							</td>
-							<td class="px-6 py-4">
-								{#if req.guestId}
-									{#each guests as g}
-										{#if g.id === req.guestId}
-											{g.name}
-										{/if}
-									{/each}
-								{:else}
-									-
-								{/if}
 							</td>
 							<td class="px-6 py-4">
 								{#if req.status === 'pending'}
