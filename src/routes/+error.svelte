@@ -1,6 +1,7 @@
 <script>
 	export let error;
 	export let status;
+	import { goto } from '$app/navigation';
 </script>
 
 <div class="h-screen flex items-center justify-center bg-green-50">
@@ -13,8 +14,11 @@
 		<p class="mb-8 text-gray-500">
 			{status === 404 ? 'ربما انتهت صلاحيتها أو لم يتم صرفها بعد.' : error?.message}
 		</p>
-		<a href="/dashboard" class="px-6 py-2 bg-(--green_dark) text-white rounded transition">
+		<button
+			class="px-6 py-2 bg-(--green_dark) text-white rounded transition cursor-pointer hover:bg-(--green_light)"
+			on:click={() => goto('/dashboard')}
+		>
 			العودة للوحة التحكم
-		</a>
+		</button>
 	</div>
 </div>

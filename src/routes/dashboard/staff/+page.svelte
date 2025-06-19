@@ -1,18 +1,36 @@
 <script>
 	import { onMount } from 'svelte';
-	import { collection, doc, addDoc, deleteDoc, getDocs, updateDoc } from 'firebase/firestore';
+	import { collection, doc, addDoc, deleteDoc, getDocs, setDoc } from 'firebase/firestore';
 	import { db } from '$lib/firebase';
 	import { get } from 'svelte/store';
 	import { userLocation } from '$lib/store/dataStore';
+	import {
+		getAuth,
+		createUserWithEmailAndPassword,
+		deleteUser,
+		signInWithEmailAndPassword
+	} from 'firebase/auth';
 
 	let staff = [];
 	let showModal = false;
 	let selectedStaff = null;
 	let showAddStaffModal = false;
-	let showEditStaffModal = false;
 	let newStaff = { name: '', role: '', phone: '', email: '', password: '' };
-	let editStaff = { id: '', name: '', role: '', phone: '', email: '', password: '' };
 	let isSubmitting = false;
+	let emailError = '';
+	let passwordError = '';
+
+	function isValidEmail(email) {
+		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	}
+
+	$: emailError =
+		newStaff.email && !isValidEmail(newStaff.email) ? 'يرجى إدخال بريد إلكتروني صحيح' : '';
+
+	$: passwordError =
+		newStaff.password && newStaff.password.length < 6
+			? 'كلمة المرور يجب أن تكون 6 أحرف أو أكثر'
+			: '';
 
 	async function loadStaff() {
 		const location = get(userLocation);
@@ -27,11 +45,6 @@
 	function openModal(member) {
 		selectedStaff = member;
 		showModal = true;
-	}
-
-	function openEditModal(member) {
-		editStaff = { ...member }; // id, name, role, phone, email, password
-		showEditStaffModal = true;
 	}
 
 	async function addStaff() {
@@ -51,62 +64,85 @@
 			return;
 		}
 		isSubmitting = true;
-		const staffData = {
-			name: newStaff.name,
-			role: newStaff.role,
-			phone: newStaff.phone,
-			email: newStaff.email,
-			password: newStaff.password
-		};
-		await addDoc(collection(db, 'Pharmacies', location.pharmacyId, 'staff'), staffData);
-		newStaff = { name: '', role: '', phone: '', email: '', password: '' };
-		showAddStaffModal = false;
-		isSubmitting = false;
-		await loadStaff();
-	}
+		try {
+			// 1. Create user in Firebase Auth
+			const auth = getAuth();
+			const userCredential = await createUserWithEmailAndPassword(
+				auth,
+				newStaff.email,
+				newStaff.password
+			);
+			const uid = userCredential.user.uid;
 
-	async function updateStaff() {
-		const location = get(userLocation);
-		if (!location || !location.pharmacyId) {
-			alert('لم يتم تحديد الصيدلية');
-			return;
-		}
-		if (
-			!editStaff.name.trim() ||
-			!editStaff.role ||
-			!editStaff.phone.trim() ||
-			!editStaff.email.trim() ||
-			!editStaff.password.trim()
-		) {
-			alert('يرجى ملء جميع الحقول المطلوبة');
-			return;
-		}
-		isSubmitting = true;
-		const staffRef = doc(db, 'Pharmacies', location.pharmacyId, 'staff', editStaff.id);
-		await updateDoc(staffRef, {
-			name: editStaff.name,
-			role: editStaff.role,
-			phone: editStaff.phone,
-			email: editStaff.email,
-			password: editStaff.password
-		});
-		showEditStaffModal = false;
-		showModal = false;
-		isSubmitting = false;
-		await loadStaff();
-	}
+			const staffData = {
+				name: newStaff.name,
+				role: newStaff.role,
+				phone: newStaff.phone,
+				email: newStaff.email,
+				password: newStaff.password // as requested
+			};
 
-	async function deleteStaff(id) {
-		const location = get(userLocation);
-		if (!location || !location.pharmacyId) {
-			alert('لم يتم تحديد الصيدلية');
-			return;
-		}
-		if (confirm('هل أنت متأكد من أنك تريد حذف هذا العضو؟')) {
-			await deleteDoc(doc(db, 'Pharmacies', location.pharmacyId, 'staff', id));
-			showModal = false;
+			// 2. Add to pharmacy staff subcollection
+			const staffDocRef = await addDoc(
+				collection(db, 'Pharmacies', location.pharmacyId, 'staff'),
+				staffData
+			);
+
+			// 3. Add to main Users collection
+			await setDoc(doc(db, 'Users', uid), {
+				...staffData,
+				role: 'staff',
+				pharmacyId: location.pharmacyId,
+				staffId: staffDocRef.id
+			});
+
+			newStaff = { name: '', role: '', phone: '', email: '', password: '' };
+			showAddStaffModal = false;
+			isSubmitting = false;
 			await loadStaff();
+			alert('تمت إضافة العضو بنجاح');
+		} catch (error) {
+			console.error(error);
+			alert('حدث خطأ أثناء إضافة العضو: ' + (error.message || error));
+			isSubmitting = false;
 		}
+	}
+
+	async function deleteStaff(id, email, password) {
+		const location = get(userLocation);
+		if (!location || !location.pharmacyId) {
+			alert('لم يتم تحديد الصيدلية');
+			return;
+		}
+		if (!confirm('هل أنت متأكد من أنك تريد حذف هذا العضو؟')) return;
+
+		try {
+			// 1. Find the user in Auth by signing in (since client SDK can't delete by email directly)
+			const auth = getAuth();
+			// Save current user to re-login after deletion
+			const currentUser = auth.currentUser;
+
+			// Sign in as the staff user to delete
+			await signInWithEmailAndPassword(auth, email, password);
+			if (auth.currentUser) {
+				await deleteUser(auth.currentUser);
+			}
+
+			// Re-sign in as the original user (admin)
+			if (currentUser && currentUser.email && currentUser.password) {
+				await signInWithEmailAndPassword(auth, currentUser.email, currentUser.password);
+			}
+		} catch (e) {
+			// If can't sign in as staff, skip Auth deletion
+			console.warn('لم يتم حذف المستخدم من المصادقة (ربما تم حذفه بالفعل):', e.message);
+		}
+
+		// 2. Delete from pharmacy staff subcollection
+		await deleteDoc(doc(db, 'Pharmacies', location.pharmacyId, 'staff', id));
+		// 3. Delete from main Users collection
+		await deleteDoc(doc(db, 'Users', id));
+		showModal = false;
+		await loadStaff();
 	}
 </script>
 
@@ -162,13 +198,8 @@
 			<p class="mb-2">كلمة المرور: {selectedStaff.password ?? 'غير متاح'}</p>
 			<div class="flex justify-end space-x-4 mt-6">
 				<button
-					on:click={() => openEditModal(selectedStaff)}
-					class="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-				>
-					تعديل
-				</button>
-				<button
-					on:click={() => deleteStaff(selectedStaff.id)}
+					on:click={() =>
+						deleteStaff(selectedStaff.id, selectedStaff.email, selectedStaff.password)}
 					class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
 				>
 					حذف
@@ -180,74 +211,6 @@
 					إغلاق
 				</button>
 			</div>
-		</div>
-	</div>
-{/if}
-
-<!-- Edit Staff Modal -->
-{#if showEditStaffModal}
-	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[400px]">
-			<h2 class="text-xl font-bold mb-4">تعديل بيانات العضو</h2>
-			<form on:submit|preventDefault={updateStaff}>
-				<input
-					type="text"
-					bind:value={editStaff.name}
-					placeholder="اسم العضو"
-					required
-					class="w-full p-2 mb-2 border rounded"
-				/>
-				<select
-					bind:value={editStaff.role}
-					required
-					class="w-full p-2 mb-2 border rounded cursor-pointer"
-				>
-					<option value="">اختر الدور</option>
-					<option value="doctor">دكتور</option>
-					<option value="nurse">ممرض</option>
-				</select>
-				<input
-					type="text"
-					bind:value={editStaff.phone}
-					placeholder="رقم الهاتف"
-					required
-					class="w-full p-2 mb-2 border rounded"
-				/>
-				<input
-					type="email"
-					bind:value={editStaff.email}
-					placeholder="البريد الإلكتروني"
-					required
-					class="w-full p-2 mb-2 border rounded"
-				/>
-				<input
-					type="text"
-					bind:value={editStaff.password}
-					placeholder="كلمة المرور"
-					required
-					class="w-full p-2 mb-4 border rounded"
-				/>
-				<div class="flex justify-end space-x-4">
-					<button
-						disabled={isSubmitting}
-						type="submit"
-						class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
-					>
-						{#if isSubmitting}
-							<span>جاري الحفظ...</span>
-						{:else}
-							<span>حفظ</span>
-						{/if}
-					</button>
-					<button
-						type="button"
-						on:click={() => (showEditStaffModal = false)}
-						class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
-					>
-						إغلاق
-					</button>
-				</div>
-			</form>
 		</div>
 	</div>
 {/if}
@@ -286,18 +249,24 @@
 					bind:value={newStaff.email}
 					placeholder="البريد الإلكتروني"
 					required
-					class="w-full p-2 mb-2 border rounded"
+					class="w-full p-2 mb-1 border rounded"
 				/>
+				{#if emailError}
+					<div class="text-red-600 text-xs mb-2">{emailError}</div>
+				{/if}
 				<input
 					type="text"
 					bind:value={newStaff.password}
 					placeholder="كلمة المرور"
 					required
-					class="w-full p-2 mb-4 border rounded"
+					class="w-full p-2 mb-1 border rounded"
 				/>
+				{#if passwordError}
+					<div class="text-red-600 text-xs mb-2">{passwordError}</div>
+				{/if}
 				<div class="flex justify-end space-x-4">
 					<button
-						disabled={isSubmitting}
+						disabled={isSubmitting || emailError || passwordError}
 						type="submit"
 						class="bg-(--green_lighter) text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
 					>

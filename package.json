@@ -30,6 +30,9 @@
 		"@tailwindcss/vite": "^4.1.8",
 		"chart.js": "^4.4.9",
 		"firebase": "^11.8.1",
+		"html2pdf.js": "^0.10.3",
+		"jspdf": "^3.0.1",
+		"phosphor-svelte": "^3.0.1",
 		"svelte-select": "^5.8.3"
 	}
 }

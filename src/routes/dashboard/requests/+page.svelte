@@ -1,24 +1,30 @@
 <script>
 	import { onMount } from 'svelte';
-	import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+	import {
+		collection,
+		addDoc,
+		getDocs,
+		doc,
+		updateDoc,
+		deleteDoc,
+		query,
+		orderBy,
+		limit,
+		startAfter
+	} from 'firebase/firestore';
 	import { db } from '$lib/firebase';
 	import { get } from 'svelte/store';
 	import { userLocation } from '$lib/store/dataStore';
 	import { fetchMedicines, fetchStaff, fetchBatchesForMedicine } from '$lib/api/fetchdata';
-	import Select from 'svelte-select';
-	import { query, orderBy, limit, startAfter } from 'firebase/firestore';
 
 	let requests = [];
 	let lastVisible = null;
 	let pageSize = 10;
 	let hasMore = true;
 	let isLoadingPage = false;
-	let medicines = [
-		{ id: 'abc123', name: 'باراسيتامول' },
-		{ id: 'def456', name: 'أموكسيسيلين' },
-		{ id: 'ghi789', name: 'دواء ثالث' }
-	];
+	let medicines = [];
 	let staff = [];
+	let guests = [];
 	let showAddRequestModal = false;
 	let isSubmitting = false;
 	let showRequestModal = false;
@@ -27,6 +33,7 @@
 	let newRequest = {
 		description: '',
 		requestedBy: '',
+		guestId: '',
 		medicines: [{ medicineId: '', medicineName: '', quantity: '' }]
 	};
 
@@ -63,13 +70,17 @@
 		hasMore = reqSnap.docs.length === pageSize;
 		isLoadingPage = false;
 
-		// Fetch and map medicines and staff as before
-		medicines = await fetchMedicines();
-		medicines = medicines.map((m) => ({
+		medicines = (await fetchMedicines()).map((m) => ({
 			id: m.id,
 			name: m.name ?? 'بدون اسم'
 		}));
 		staff = await fetchStaff();
+
+		guests = [];
+		if (location && location.pharmacyId) {
+			const guestsSnap = await getDocs(collection(db, 'Pharmacies', location.pharmacyId, 'guests'));
+			guests = guestsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+		}
 	}
 	onMount(() => loadData(true));
 
@@ -93,6 +104,7 @@
 		if (
 			!newRequest.description.trim() ||
 			!newRequest.requestedBy ||
+			!newRequest.guestId ||
 			newRequest.medicines.some((m) => !m.medicineId || !m.quantity)
 		) {
 			alert('يرجى ملء جميع الحقول المطلوبة');
@@ -100,7 +112,9 @@
 		}
 		isSubmitting = true;
 		await addDoc(collection(db, 'Pharmacies', location.pharmacyId, 'requests'), {
-			...newRequest,
+			description: newRequest.description,
+			requestedBy: newRequest.requestedBy, // staff subcollection ID
+			guestId: newRequest.guestId,
 			medicines: newRequest.medicines.map((m) => ({
 				medicineId: m.medicineId,
 				quantity: m.quantity
@@ -111,6 +125,7 @@
 		newRequest = {
 			description: '',
 			requestedBy: '',
+			guestId: '',
 			medicines: [{ medicineId: '', medicineName: '', quantity: '' }]
 		};
 		showAddRequestModal = false;
@@ -221,39 +236,38 @@
 		newRequest = {
 			description: '',
 			requestedBy: '',
+			guestId: '',
 			medicines: [{ medicineId: '', medicineName: '', quantity: '' }]
 		};
 	}
-
-	$: console.log('medicines', medicines);
-	console.log('one medicine', medicines[0]);
 </script>
 
 <!-- Add Request Button -->
-<div class="flex mb-5">
+<!-- <div class="flex mb-5">
 	<button
 		on:click={() => (showAddRequestModal = true)}
 		class="w-32 py-2 cursor-pointer bg-(--green_lighter) text-white rounded hover:bg-green-700"
 	>
 		إضافة طلب
 	</button>
-</div>
+</div> -->
 
 <!-- Requests Table -->
 <div class="relative overflow-x-auto">
-	<table class="w-full text-lg text-center rtl:text-right text-gray-500 dark0:text-gray-400">
+	<table class="w-full text-lg text-center rtl:text-right text-gray-500">
 		<thead>
 			<tr>
 				<th class="px-6 py-3">العضو</th>
 				<th class="px-6 py-3">الأدوية المطلوبة</th>
 				<th class="px-6 py-3">الحالة</th>
+				<th class="px-6 py-3">المريض</th>
 				<th class="px-6 py-3">إجراءات</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#each requests as req}
 				<tr
-					class="bg-white border-b dark0:bg-gray-800 dark0:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-100"
+					class="bg-white border-b border-gray-200 cursor-pointer hover:bg-gray-100"
 					on:click={() => openRequestModal(req)}
 				>
 					<td class="px-6 py-4">
@@ -290,6 +304,17 @@
 						{/if}
 					</td>
 					<td class="px-6 py-4">
+						{#if req.guestId}
+							{#each guests as g}
+								{#if g.id === req.guestId}
+									{g.name}
+								{/if}
+							{/each}
+						{:else}
+							-
+						{/if}
+					</td>
+					<td class="px-6 py-4">
 						{#if req.status === 'pending'}
 							<button
 								on:click|stopPropagation={() => approveRequest(req)}
@@ -314,7 +339,7 @@
 <!-- Add Request Modal -->
 {#if showAddRequestModal}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[500px]">
+		<div class="bg-white p-6 rounded-lg w-[90%] md:w-[500px]">
 			<h2 class="text-xl font-bold mb-4">إضافة طلب جديد</h2>
 			<form on:submit|preventDefault={addRequest}>
 				<textarea
@@ -332,6 +357,16 @@
 					{#each staff as s}
 						<option value={s.id}>{(s.role === 'doctor' ? 'دكتور' : 'ممرض') + ' - ' + s.name}</option
 						>
+					{/each}
+				</select>
+				<select
+					bind:value={newRequest.guestId}
+					required
+					class="w-full p-2 mb-2 border rounded cursor-pointer"
+				>
+					<option value="">اختر المريض</option>
+					{#each guests as g}
+						<option value={g.id}>{g.name} {g.nationalId ? `(${g.nationalId})` : ''}</option>
 					{/each}
 				</select>
 				<h3 class="font-bold mb-2">الأدوية المطلوبة:</h3>
@@ -422,11 +457,21 @@
 <!-- Request Details Modal -->
 {#if showRequestModal && selectedRequest}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-		<div class="bg-white dark0:bg-gray-800 p-6 rounded-lg w-[90%] md:w-[500px]">
+		<div class="bg-white p-6 rounded-lg w-[90%] md:w-[500px]">
 			<h2 class="text-xl font-bold mb-4">تفاصيل الطلب</h2>
 			<p class="mb-2 break-words whitespace-pre-line">
 				<b>الوصف:</b>
 				{selectedRequest.description}
+			</p>
+			<p class="mb-2">
+				<b>تاريخ الطلب:</b>
+				{selectedRequest.createdAt
+					? new Date(
+							selectedRequest.createdAt.seconds
+								? selectedRequest.createdAt.seconds * 1000
+								: selectedRequest.createdAt
+						).toLocaleString('ar-EG')
+					: '-'}
 			</p>
 			<p class="mb-2">
 				<b>العضو:</b>
@@ -440,14 +485,30 @@
 			<ul class="mb-2">
 				{#each selectedRequest.medicines as m}
 					<li>
+						<b>الفئة:</b>
+						{m.category || (medicines.find((med) => med.id === m.medicineId)?.category ?? '')}
+						-
 						{#each medicines as med}
 							{#if med.id === m.medicineId}
-								{med.name} ({m.quantity})
+								<b>الدواء:</b> {med.name}
 							{/if}
 						{/each}
+						- <b>الكمية:</b> {m.quantity}
 					</li>
 				{/each}
 			</ul>
+			<p class="mb-2">
+				<b>المريض:</b>
+				{#if selectedRequest.guestId}
+					{#each guests as g}
+						{#if g.id === selectedRequest.guestId}
+							{g.name}
+						{/if}
+					{/each}
+				{:else}
+					-
+				{/if}
+			</p>
 			<p class="mb-2">
 				<b>الحالة:</b>
 				{selectedRequest.status === 'pending'
@@ -479,11 +540,11 @@
 {/if}
 
 {#if hasMore}
-	<div class="flex justify-center my-4">
+	<div class="flex justify-center my-6">
 		<button
+			on:click={() => loadData(false)}
 			class="bg-(--green_lighter) text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
 			disabled={isLoadingPage}
-			on:click={() => loadData(false)}
 		>
 			{isLoadingPage ? 'جاري التحميل...' : 'تحميل المزيد'}
 		</button>
