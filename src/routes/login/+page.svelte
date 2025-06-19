@@ -1,10 +1,10 @@
 <script>
-	import { auth } from '$lib/firebase'; // Adjust the path to your firebase.js
+	import { auth } from '$lib/firebase';
 	import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 	import { goto } from '$app/navigation';
 	import { userLocation } from '$lib/store/dataStore';
 	import { db } from '$lib/firebase';
-	import { getDoc, doc } from 'firebase/firestore';
+	import { getDoc, doc, query, collection, where, getDocs } from 'firebase/firestore';
 	import { get } from 'svelte/store';
 	import { userStore } from '$lib/store/userStore';
 
@@ -14,13 +14,16 @@
 	let loading = false;
 
 	async function setUserPharmacyLocation(userId) {
-		// Assuming you store user's assigned pharmacy ID under users collection
-		const userDoc = await getDoc(doc(db, 'Users', userId));
-		if (userDoc.exists()) {
-			const userData = userDoc.data();
-			// e.g., userData.pharmacyId is the assigned pharmacy
-			userLocation.set(userData || null);
-		} else {
+		try {
+			const userDoc = await getDoc(doc(db, 'Users', userId));
+			if (userDoc.exists()) {
+				const userData = userDoc.data();
+				userLocation.set(userData || null);
+			} else {
+				userLocation.set(null);
+			}
+		} catch (err) {
+			console.error('Error fetching user pharmacy location:', err);
 			userLocation.set(null);
 		}
 	}
@@ -28,55 +31,71 @@
 	async function login() {
 		error = '';
 		loading = true;
-		const auth = getAuth();
+		const authInstance = getAuth();
 		try {
 			// Try Firebase Auth (for admin/pharmacy admin)
-			const cred = await signInWithEmailAndPassword(auth, email, password);
+			const cred = await signInWithEmailAndPassword(authInstance, email, password);
 			const user = cred.user;
+			if (!user || !user.uid) {
+				error = 'تعذر تسجيل الدخول. يرجى المحاولة مرة أخرى.';
+				return;
+			}
 			const userId = user.uid;
-			await setUserPharmacyLocation(userId); // set the pharmacy location store
+			await setUserPharmacyLocation(userId);
 			const userDoc = await getDoc(doc(db, 'Users', userId));
 			if (userDoc.exists()) {
+				const userData = userDoc.data();
 				userStore.set({
 					uid: userId,
-					displayName: userDoc.data().displayName,
-					email: userDoc.data().email,
-					role: userDoc.data().role
+					displayName: userData.displayName,
+					email: userData.email,
+					role: userData.role
 				});
-				if (userDoc.data().role === 'admin') {
+				if (userData.role === 'admin') {
 					goto('/admin');
-				} else if (userDoc.data().role === 'staff') {
+				} else if (userData.role === 'staff') {
 					goto('/request');
 				} else {
 					goto('/dashboard');
 				}
 			} else {
+				error = 'تعذر العثور على بيانات المستخدم.';
 				goto('/dashboard');
 			}
 		} catch (err) {
+			console.error('Firebase Auth error:', err);
 			// If Auth fails, try Firestore for staff
-			const q = query(
-				collection(db, 'Users'),
-				where('email', '==', email),
-				where('password', '==', password),
-				where('role', '==', 'staff')
-			);
-			const snap = await getDocs(q);
-			if (snap.empty) {
-				error = 'بيانات الدخول غير صحيحة';
-				return;
+			try {
+				const q = query(
+					collection(db, 'Users'),
+					where('email', '==', email),
+					where('password', '==', password),
+					where('role', '==', 'staff')
+				);
+				const snap = await getDocs(q);
+				if (snap.empty) {
+					error = 'بيانات الدخول غير صحيحة';
+					return;
+				}
+				const userDoc = snap.docs[0];
+				const user = userDoc.data();
+				if (!user) {
+					error = 'تعذر العثور على بيانات المستخدم.';
+					return;
+				}
+				userStore.set({
+					uid: userDoc.id,
+					displayName: user.name,
+					email: user.email,
+					role: user.role,
+					pharmacyId: user.pharmacyId,
+					staffId: user.staffId
+				});
+				goto('/request');
+			} catch (err2) {
+				console.error('Firestore staff login error:', err2);
+				error = 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة لاحقاً.';
 			}
-			const userDoc = snap.docs[0];
-			const user = userDoc.data();
-			userStore.set({
-				uid: userDoc.id,
-				displayName: user.name,
-				email: user.email,
-				role: user.role,
-				pharmacyId: user.pharmacyId,
-				staffId: user.staffId
-			});
-			goto('/request');
 		} finally {
 			loading = false;
 		}
